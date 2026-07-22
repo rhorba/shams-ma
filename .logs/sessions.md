@@ -22,3 +22,9 @@ Next session (Sprint 2):
 ## SESSION_START — 2026-07-22
 Request: "continue" (resuming Sprint 2 per prior session-end notes).
 Env vars collected for Epic 0 scope (DB, JWT); CMI/geocoding/SMTP/storage filled with local sandbox defaults per user decision. Next: brainstorm/plan Epic 0 (Foundation Scaffold) per docs/stories-shams-ma.md.
+
+## SESSION_END — 2026-07-22
+Epic 0 (Foundation Scaffold) complete and shipped: Stories 0.1 (repo scaffold + CI), 0.2 (DB schema/migrations), 0.3 (auth: RS256 JWT, RBAC, admin MFA, rate limiting) all built, verified, committed, pushed, CI green (5/5 jobs).
+Real bugs found and fixed along the way (see .logs/decisions.md and .logs/activity.md for detail): docker-compose networking (DB_HOST=localhost breaking container-to-container), 6 CI/security-scanner config issues, 1 real dependency CVE (postgresql driver).
+Deferred/untouched: the skills/ -> .claude/.skills/ migration question from session start (user chose to leave as-is) — still unresolved, revisit if it starts causing friction.
+Next session (Epic 1 — Installer Onboarding & Verification, per docs/stories-shams-ma.md): coverage-zone setting (base location + radius, ST_DWithin matching), certification document upload (MinIO), admin verification queue. Will need real geocoding behavior wired up (Nominatim, currently just a config placeholder) since homeowner/installer location fields are stubbed.
