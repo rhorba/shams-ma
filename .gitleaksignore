@@ -1,0 +1,9 @@
+# Known-safe findings, not real secrets:
+
+# Dedicated test-only RSA keypair for JWT signing in automated tests (backend/src/test/resources/keys/README.md
+# explains why). Generated solely for CI/local test runs, never used outside an ephemeral test Spring context.
+c7e4f6c186d6e7bfd461ad9449a74131440c05cb:backend/src/test/resources/keys/private.pem:private-key:1
+
+# Empty JWT_SECRET= placeholder from the original Sprint 1 .env.example (pre-RS256 migration, Story 0.3
+# replaced it with JWT_PRIVATE_KEY_PATH/JWT_PUBLIC_KEY_PATH). No value was ever present, just the bare key name.
+bf17186c89e8e7d39885c5d0ee56d2df86f1f517:.env.example:generic-api-key:12
