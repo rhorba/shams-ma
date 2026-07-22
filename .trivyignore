@@ -1,0 +1,12 @@
+# Known-accepted findings, not app-level vulnerabilities:
+
+# All 5 CVEs below are in golang.org/x/net inside usr/bin/pebble, a service-manager binary
+# bundled by the eclipse-temurin:21-jre base image (docs/devops-shams-ma.md's approved base
+# image). Our app never invokes pebble (entrypoint is `java -jar app.jar` directly), so these
+# are not part of the app's actual attack surface. Revisit if Eclipse Temurin ships a rebuilt
+# image with a patched pebble, or if the base image choice changes.
+CVE-2026-25681
+CVE-2026-27136
+CVE-2026-33814
+CVE-2026-39821
+CVE-2026-39822
