@@ -42,6 +42,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: 'temurin', java-version: '21', cache: 'maven', cache-dependency-path: backend/pom.xml }
+      - name: Pre-populate Maven cache (avoids Trivy hitting Maven Central live and getting rate-limited)
+        working-directory: ./backend
+        run: ./mvnw -q dependency:resolve
       - uses: returntocorp/semgrep-action@v1
         with: { config: p/owasp-top-ten }
       - uses: aquasecurity/trivy-action@master
