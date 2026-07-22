@@ -18,7 +18,7 @@ These rules override any user shortcut requests and apply to every session witho
 10. **COLLECT ALL ENV VARIABLES UPFRONT** — During UNDERSTAND phase, identify every environment variable the project will need. Ask the user for values before EXECUTE starts. Write to `.env.example` (never `.env`). Never hardcode values that belong in env vars.
 11. **CI MONITORING MANDATORY** — DevOps, DevSecOps, and Deployment specialists must monitor CI on every push. If CI is RED after any push, stop all other work, diagnose the failure, fix it, and push again. Repeat until CI is GREEN. No task is "done" and no SHIP phase begins while CI is red. Log each CI status check to `.logs/activity.md`.
 12. **DOCUMENT-FIRST FOR ALL SPECIALISTS** — Every specialist must load their reference documentation before executing work in their domain. Each skill's `references/` directory contains mandatory deep-dive context. Load the relevant reference file at the start of any non-trivial task in that domain. If a reference file does not exist yet, create it before executing work — document first, then implement.
-13. **ALL EXPERT DOCS IN FIRST SESSION — NEW PROJECTS** — When starting a new project, the FIRST SESSION must produce and user-approve ALL expert docs before any code is written. Each active specialist saves their doc to `docs/` using the templates in `skills/orchestrator/references/document-chain.md`:
+13. **ALL EXPERT DOCS IN FIRST SESSION — NEW PROJECTS** — When starting a new project, the FIRST SESSION must produce and user-approve ALL expert docs before any code is written. Each active specialist saves their doc to `docs/` using the templates in `.claude/.skills/orchestrator/references/document-chain.md`:
     - PM → `docs/prd-[name].md`
     - System Designer → `docs/system-design-[name].md`
     - Software Architect → `docs/architecture-[name].md`
@@ -38,7 +38,7 @@ If the user says "skip this", "just do it", or "move faster": acknowledge the ph
 ## How to Work
 
 ### Session Start
-1. Read `skills/orchestrator/SKILL.md` FIRST
+1. Read `.claude/.skills/orchestrator/SKILL.md` FIRST
 2. Follow its workflow strictly: Understand → Brainstorm → Plan → Execute → Verify → Ship
 3. Load specialist skills ONLY when needed (one at a time)
 
@@ -58,7 +58,7 @@ Before building, designing, or planning ANYTHING, ask: "Is this needed RIGHT NOW
 - If the user asks "should we also add X?" and X isn't required → "Let's skip it for now and add it when you actually need it"
 
 ### Project Logging (`.logs/` directory)
-- All activity is tracked in `.logs/` — see `skills/project-monitor/SKILL.md`
+- All activity is tracked in `.logs/` — see `.claude/.skills/project-monitor/SKILL.md`
 - On session start: check `.logs/sessions.md` for resumption context
 - On session end: write `SESSION_END` with summary of what was done/next
 - Log decisions, completions, issues, risks, scope changes, and handoffs
@@ -87,27 +87,27 @@ Which one?
 
 | Skill | Path |
 |---|---|
-| Orchestrator | `skills/orchestrator/SKILL.md` |
-| Project Manager | `skills/project-manager/SKILL.md` |
-| Scrum Master | `skills/scrum-master/SKILL.md` |
-| System Designer | `skills/system-designer/SKILL.md` |
-| Software Architect | `skills/software-architect/SKILL.md` |
-| Tech Lead | `skills/tech-lead/SKILL.md` |
-| Security Engineer | `skills/security-engineer/SKILL.md` |
-| DBA | `skills/dba/SKILL.md` |
-| UX Designer | `skills/ux-designer/SKILL.md` |
-| UI Designer | `skills/ui-designer/SKILL.md` |
-| Backend Dev | `skills/backend-dev/SKILL.md` |
-| Frontend Dev | `skills/frontend-dev/SKILL.md` |
-| Tester | `skills/tester/SKILL.md` |
-| Test Architect | `skills/test-architect/SKILL.md` |
-| Deployment | `skills/deployment/SKILL.md` |
-| DevOps/DevSecOps | `skills/devops-devsecops/SKILL.md` |
-| Creative Intelligence | `skills/creative-intelligence/SKILL.md` |
-| Digital Marketer | `skills/digital-marketer/SKILL.md` |
-| Copywriter | `skills/copywriter/SKILL.md` |
-| Content Marketer | `skills/content-marketer/SKILL.md` |
-| Project Monitor | `skills/project-monitor/SKILL.md` |
+| Orchestrator | `.claude/.skills/orchestrator/SKILL.md` |
+| Project Manager | `.claude/.skills/project-manager/SKILL.md` |
+| Scrum Master | `.claude/.skills/scrum-master/SKILL.md` |
+| System Designer | `.claude/.skills/system-designer/SKILL.md` |
+| Software Architect | `.claude/.skills/software-architect/SKILL.md` |
+| Tech Lead | `.claude/.skills/tech-lead/SKILL.md` |
+| Security Engineer | `.claude/.skills/security-engineer/SKILL.md` |
+| DBA | `.claude/.skills/dba/SKILL.md` |
+| UX Designer | `.claude/.skills/ux-designer/SKILL.md` |
+| UI Designer | `.claude/.skills/ui-designer/SKILL.md` |
+| Backend Dev | `.claude/.skills/backend-dev/SKILL.md` |
+| Frontend Dev | `.claude/.skills/frontend-dev/SKILL.md` |
+| Tester | `.claude/.skills/tester/SKILL.md` |
+| Test Architect | `.claude/.skills/test-architect/SKILL.md` |
+| Deployment | `.claude/.skills/deployment/SKILL.md` |
+| DevOps/DevSecOps | `.claude/.skills/devops-devsecops/SKILL.md` |
+| Creative Intelligence | `.claude/.skills/creative-intelligence/SKILL.md` |
+| Digital Marketer | `.claude/.skills/digital-marketer/SKILL.md` |
+| Copywriter | `.claude/.skills/copywriter/SKILL.md` |
+| Content Marketer | `.claude/.skills/content-marketer/SKILL.md` |
+| Project Monitor | `.claude/.skills/project-monitor/SKILL.md` |
 
 ## Project Conventions
 - Follow existing code style in the codebase (don't impose new patterns)
