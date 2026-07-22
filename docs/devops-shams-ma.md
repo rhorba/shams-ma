@@ -68,10 +68,12 @@ jobs:
         run: docker build -t shamsma-api:${{ github.sha }} ./backend
       - name: Build frontend image
         run: docker build -t shamsma-web:${{ github.sha }} ./frontend
-      - name: Scan images
-        run: |
-          trivy image --severity CRITICAL,HIGH shamsma-api:${{ github.sha }}
-          trivy image --severity CRITICAL,HIGH shamsma-web:${{ github.sha }}
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@master
+        with: { scan-type: image, image-ref: "shamsma-api:${{ github.sha }}", severity: "CRITICAL,HIGH", exit-code: 1 }
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@master
+        with: { scan-type: image, image-ref: "shamsma-web:${{ github.sha }}", severity: "CRITICAL,HIGH", exit-code: 1 }
   deploy-staging:
     needs: [build]
     if: github.ref == 'refs/heads/main'
