@@ -45,7 +45,7 @@ jobs:
       - uses: returntocorp/semgrep-action@v1
         with: { config: p/owasp-top-ten }
       - uses: aquasecurity/trivy-action@master
-        with: { scan-type: fs, severity: CRITICAL,HIGH, exit-code: 1 }
+        with: { scan-type: fs, severity: "CRITICAL,HIGH", exit-code: 1 }
       - name: Secrets scan
         run: gitleaks detect --source . --verbose
   build:
