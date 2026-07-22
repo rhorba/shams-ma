@@ -34,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 } # full history so gitleaks fingerprints (commit-pinned) stay stable across pushes
       - uses: actions/setup-java@v4
         with: { distribution: 'temurin', java-version: '21', cache: 'maven', cache-dependency-path: backend/pom.xml }
       - name: Pre-populate Maven cache (avoids Trivy hitting Maven Central live and getting rate-limited)
