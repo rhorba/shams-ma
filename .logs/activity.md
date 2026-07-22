@@ -1,0 +1,52 @@
+﻿# ACTIVITY — Shams.ma
+
+
+
+## 2026-07-21 — Session 1 (Sprint 1 kickoff)
+- DECISION: Stack pivot confirmed — Java Spring Boot backend, React frontend, Docker deployment, PostgreSQL+PostGIS retained. Supersedes README's Next.js/Drizzle stack.
+- ENV_VARS_COLLECTED (draft): DB_*, JWT_*, CMI_* (pending scope decision), GEOCODING_API_KEY, SMTP_*, FILE_STORAGE_*, SERVER_PORT, CORS_ALLOWED_ORIGINS — written to .env.example. Real values deferred to before EXECUTE (Session 2).
+- Drafted docs/prd-shams-ma.md (PM) — awaiting user approval. 2 open questions raised (payments in scope? coverage-zone model?).
+
+## 2026-07-21 (cont.)
+- MILESTONE: PRD approved (with 2 amendments: payments IN scope via CMI deposit; coverage zones = radius-from-point).
+- MILESTONE: System design approved (single monolith, single region, no queue/cache — YAGNI).
+- MILESTONE: Architecture approved (Layered/package-by-feature, JWT auth, React feature-folders + React Query).
+- MILESTONE: Security baseline approved (MFA for Admin only, JWT, webhook signature verification, signed URLs for cert docs).
+- MILESTONE: Database design approved (PostgreSQL+PostGIS, 9 tables, Flyway migrations, GiST index for coverage matching).
+- MILESTONE: UX foundation approved (3 personas, 3 core flows, 4 key screen wireframes + states).
+- MILESTONE: UI foundation approved (MUI framework, solar-gold/renewable-green theme).
+- MILESTONE: Test strategy approved (Payment=Maximum rigor, 80% coverage gate, ATDD scenarios for booking/payment/cert/coverage-match).
+- MILESTONE: DevOps foundation approved (GitHub Actions CI, Docker for backend+frontend, Postgres+PostGIS compose, monitoring baseline).
+- MILESTONE: Stories ready (approved). All 10 foundation docs now complete: prd, system-design, architecture, security, database, ux, ui, test-strategy, devops, stories.
+- PUSH: main -> origin/main. Commits: bf17186 (chore: initial commit — framework/README/env), 384dd8d (docs: foundation documents for shams-ma). Repo: https://github.com/rhorba/shams-ma
+
+## 2026-07-22 — Session 2 (Sprint 2 kickoff)
+- ENV_VARS: Real local-dev values collected/generated. DB_USER/PASSWORD=postgres/postgres. JWT_SECRET auto-generated (256-bit, written to .env only). CMI=sandbox/test placeholder creds. Geocoding=Nominatim (free, no key). SMTP=Mailhog (local catcher). File storage=MinIO (local S3-compatible). All written to .env (gitignored, not committed) and .env.example (placeholders/defaults only).
+- NOTE: skills/ directory found deleted on disk (duplicated into untracked .claude/.skills/, not picked up by Skill tool). User chose to leave as-is and proceed — revisit later if needed.
+
+## 2026-07-22 — Story 0.1: Project scaffold + CI pipeline
+- Backend: Spring Boot 4.1.0 (Java 21 target, Maven wrapper) scaffolded via start.spring.io with web/security/data-jpa/validation/actuator/flyway/postgresql/testcontainers. Added nimbus-jose-jwt (RS256, for Story 0.3), Spotless (googleJavaFormat, v3.8.0 — v2.43.0 incompatible with JDK25 javac internals, bumped), JaCoCo 0.8.12 with 80% instruction-coverage gate (ApiApplication.class excluded from the ratio — boilerplate bootstrap, not business logic). Package-by-feature skeleton created: auth, homeowner, installer, booking, payment, admin, notification, shared (ADR-1/ADR-3). application.yml wired to .env var names.
+- Frontend: Vite + React 19 + TypeScript scaffolded (`npm create vite`). Kept the template's built-in oxlint (deviates from plan's "ESLint+Prettier" — oxlint satisfies the same `npm run lint` CI contract, faster, avoids duplicate tooling). Added @tanstack/react-query, Vitest + React Testing Library + jsdom + v8 coverage, feature-folder skeleton (src/app/, src/features/), placeholder App + passing test.
+- Docker: backend/Dockerfile, frontend/Dockerfile copied verbatim from devops doc. docker-compose.yml at repo root: db/api/web per doc plus mailhog + minio added for local dev parity with .env.
+- CI: .github/workflows/ci.yml copied from devops doc (backend/frontend/security/build jobs); added `defaults.run.working-directory` per backend/frontend job (required for `./mvnw`/`npm` to resolve — not explicit in the doc's snippet but necessary).
+- README stack section corrected (was still Next.js/Drizzle) to Java Spring Boot + React/Vite + PostgreSQL/PostGIS + Docker + CMI.
+- Deleted stray bash.exe.stackdump.
+- VERIFY: `./mvnw -DskipTests package` pass. `./mvnw spotless:check` pass. `./mvnw test jacoco:report` + `./mvnw jacoco:check` pass EXCLUDING the Testcontainers-backed ApiApplicationTests (this sandbox shell has no reachable Docker daemon — confirmed via `docker ps` failure — so that one test can't run here; it needs Docker, which CI/GitHub Actions runners and any real dev machine provide). `npm run build`/`npm test -- --coverage`/`npm run lint` all pass. `docker compose config` validates clean. CI workflow YAML parses valid.
+
+## 2026-07-22 (cont.) — Story 0.1 checkpoint
+- Full `docker-compose up` verification performed (fork's report only validated `docker compose config`, not an actual boot). Found and fixed a real bug: docker-compose.yml's `api` service inherited DB_HOST=localhost/SMTP_HOST=localhost/FILE_STORAGE_ENDPOINT=localhost:9000 from `.env` via env_file, which don't resolve inside the compose network. Fixed with an `environment:` override block on `api` (DB_HOST=db, DB_PORT=5432, SMTP_HOST=mailhog, FILE_STORAGE_ENDPOINT=http://minio:9000).
+- Also made api/web/db host port mappings overridable via ${API_HOST_PORT:-8080}/${WEB_HOST_PORT:-4173}/${DB_HOST_PORT:-5432} env vars (defaults match the DevOps doc) — this dev machine already has other local projects bound to 5432/8080, verified using overrides (5435/8090/4173) without changing the committed defaults.
+- End-to-end boot confirmed: db healthy, Flyway ran (0 migrations, expected pre-0.2), Hibernate/JPA initialized, Spring Security loaded, GET /actuator/health -> {"status":"UP"}, web container serves 200 on /.
+
+## 2026-07-22 (cont.) — Story 0.2: Database schema + Flyway migrations
+- Created V1-V9 in backend/src/main/resources/db/migration/, copied field-for-field from docs/database-shams-ma.md sections 3/4/5 (no deviations from the doc's SQL).
+- VERIFY: started db via `DB_HOST_PORT=5435 docker compose up -d db` (healthy), then `docker compose up -d --build api` (Spring Boot's own Flyway-on-boot, since no flyway-maven-plugin is configured — app-boot approach was the working option). Logs confirmed "Successfully applied 9 migrations to schema public, now at version v9". `\dt` confirmed all 9 project tables + flyway_schema_history; `\dT` confirmed all 5 project enums (user_role, verification_status, quote_status, booking_status, payment_status); `\di` confirmed all 8 explicit indexes from section 4 plus the 2 implicit UNIQUE-backed ones (users_email_key, payments_cmi_transaction_id_key). Torn down cleanly with `docker compose down` afterward — only this project's containers touched.
+
+## 2026-07-22 (cont.) — Story 0.3: Auth (registration, login, RS256 JWT, RBAC, admin MFA)
+- Built: JPA entities (User/Homeowner/Installer, package-by-feature per ADR-1/ADR-3, HomeownerService/InstallerService interfaces called from auth), POST /api/v1/auth/register (role-specific, bcrypt, breached-password+min-10-char check, Bean Validation), POST /api/v1/auth/login (RS256 access token 15min + refresh token 7d HttpOnly+Secure+SameSite=Strict cookie), Spring Security stateless filter chain (JwtAuthenticationFilter, RateLimitFilter via Bucket4j in-memory on login/register), TOTP admin MFA (dev.samstevens.totp) with POST /api/v1/auth/mfa/enroll + /verify, RSA 2048-bit keypair generated under backend/src/main/resources/keys/ (gitignored) replacing the earlier JWT_SECRET in .env/.env.example with JWT_PRIVATE_KEY_PATH/JWT_PUBLIC_KEY_PATH.
+- Unit tests (PasswordPolicy, JwtService, TotpService) + Testcontainers integration tests (AuthControllerIntegrationTest, 6 scenarios: register/login happy path, weak password, duplicate email, wrong password, non-admin 403, admin-without-MFA 403 + enroll flow). All 17 tests pass, JaCoCo 80% gate met, Spotless clean.
+- Three real bugs found and fixed during verification (all pre-existing gaps not caught by earlier stories, since this was the first time real request-response flows ran against the stack):
+  1. TestcontainersConfiguration (from Story 0.1's Initializr scaffold) used plain `postgres:latest`, incompatible with V1's `CREATE EXTENSION postgis` — switched to `postgis/postgis:16-3.4-alpine` with `asCompatibleSubstituteFor("postgres")`. This also let the original ApiApplicationTests context-load test run for the first time (Story 0.1's fork had no Docker in its sandbox to verify it).
+  2. Hibernate needs `@JdbcTypeCode(SqlTypes.NAMED_ENUM)` on fields backed by native Postgres enum columns (user_role, verification_status) — without it, inserts fail with "column is of type X but expression is of type character varying".
+  3. Spring Security 403-instead-of-400 bug: `ResponseStatusException(BAD_REQUEST)` triggers Boot's internal forward to `/error`, which re-enters the security filter chain; since `/error` wasn't permitAll'd, unauthenticated access got 403'd by Http403ForbiddenEntryPoint, silently overwriting the intended 400. Fixed by adding `/error` to permitAll. MockMvc-based integration tests did NOT catch this (no real container-level error forwarding in MockMvc) — only caught via manual curl smoke test against the real running docker-compose stack, confirming the plan's "integration tests + manual smoke test" verification was not redundant.
+- Manual curl smoke test against the real stack (docker-compose, ports 5435/8090 to avoid this machine's other-project port clashes): register/login/weak-password-400/duplicate-email-409/wrong-password-401/non-admin-403/admin-no-mfa-403/mfa-enroll-200/relogin-mfaEnrolled-true all confirmed. Torn down cleanly after.

@@ -9,7 +9,7 @@ Homeowners can't find vetted solar installers. Installers have no unified lead-g
 Three-sided marketplace: homeowners get quotes and book verified installers, installers manage leads, admins verify certifications. Built-in ROI/payback calculator.
 
 ## Stack
-Next.js 15, TypeScript, PostgreSQL 16 + PostGIS (coverage zones), Drizzle ORM, Cloudflare R2, CMI payments, Tailwind v4
+Java Spring Boot (Maven), React + TypeScript (Vite), PostgreSQL 16 + PostGIS (coverage zones), Docker, CMI payments
 
 ## Key Roles
 Homeowner | Solar Installer | Admin

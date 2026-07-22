@@ -1,0 +1,44 @@
+services:
+  api:
+    build: ./backend
+    ports: ["${API_HOST_PORT:-8080}:8080"]
+    env_file: .env
+    environment:
+      # Overrides for .env's host-based-dev defaults (localhost/host-mapped ports) —
+      # inside the compose network, other services are reachable by service name on
+      # their container-internal port, not the host-published one.
+      DB_HOST: db
+      DB_PORT: "5432"
+      SMTP_HOST: mailhog
+      FILE_STORAGE_ENDPOINT: http://minio:9000
+    depends_on:
+      db: { condition: service_healthy }
+  web:
+    build: ./frontend
+    ports: ["${WEB_HOST_PORT:-4173}:80"]
+    depends_on: [api]
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_DB: shamsma
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports: ["${DB_HOST_PORT:-5432}:5432"]  # host-published for host-based dev (DB_HOST=localhost in .env); override via env var if 5432 is taken locally
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+  mailhog:
+    image: mailhog/mailhog
+    ports: ["1025:1025", "8025:8025"]
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["miniodata:/data"]
+volumes:
+  pgdata:
+  miniodata:

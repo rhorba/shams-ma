@@ -1,0 +1,61 @@
+name: ci
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: 'temurin', java-version: '21' }
+      - name: Lint (Checkstyle/Spotless)
+        run: ./mvnw spotless:check
+      - name: Test + Coverage (JaCoCo)
+        run: ./mvnw test jacoco:report
+      - name: Coverage gate (>= 80%)
+        run: ./mvnw jacoco:check
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test -- --coverage
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: returntocorp/semgrep-action@v1
+        with: { config: p/owasp-top-ten }
+      - uses: aquasecurity/trivy-action@master
+        with: { scan-type: fs, severity: CRITICAL,HIGH, exit-code: 1 }
+      - name: Secrets scan
+        run: gitleaks detect --source . --verbose
+  build:
+    needs: [backend, frontend, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -t shamsma-api:${{ github.sha }} ./backend
+      - name: Build frontend image
+        run: docker build -t shamsma-web:${{ github.sha }} ./frontend
+      - name: Scan images
+        run: |
+          trivy image --severity CRITICAL,HIGH shamsma-api:${{ github.sha }}
+          trivy image --severity CRITICAL,HIGH shamsma-web:${{ github.sha }}
+  deploy-staging:
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "deploy to staging"  # adapt to hosting target

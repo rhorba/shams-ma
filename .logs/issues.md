@@ -1,0 +1,3 @@
+﻿# ISSUES — Shams.ma
+
+
