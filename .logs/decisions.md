@@ -16,3 +16,10 @@
 - Test-only JWT RSA keypair committed at backend/src/test/resources/keys/ (safe — not a real secret, only used in ephemeral test Spring contexts). Prod/dev keys stay gitignored at backend/src/main/resources/keys/.
 - .gitleaksignore and .trivyignore introduced as the accepted mechanism for documenting known-safe/known-accepted security-scanner findings, each entry justified inline. Both apply repo-wide; keep entries narrowly scoped (specific fingerprints/CVE IDs, not blanket rule disables).
 - security job's checkout uses fetch-depth: 0 (full history) specifically because gitleaks fingerprints are commit-pinned and need full history for stability — other jobs can stay shallow.
+
+## 2026-07-23 — Epic 1 planning
+- Sequencing: plan all 3 stories (1.1-1.3) together, execute sequentially without stopping, single checkpoint at end (user choice).
+- GET /api/v1/installers/browse: public, no auth required (lead-gen marketplace browsing pattern) — user confirmed.
+- Coverage radius validated 1-200km (no doc-specified bound, judgment call).
+- Cert approval: approving any certification_documents row flips installers.verification_status to APPROVED (schema allows multiple certs/installer, but stories describe a single-cert MVP flow).
+- File storage: AWS SDK v2 S3Client against MinIO (path-style + endpoint override) rather than MinIO's own SDK — reuses the already-configured FILE_STORAGE_* env vars, standard/well-supported library.

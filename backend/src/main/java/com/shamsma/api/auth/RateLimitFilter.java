@@ -23,7 +23,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 class RateLimitFilter extends OncePerRequestFilter {
 
   private static final Set<String> LIMITED_PATHS =
-      Set.of("/api/v1/auth/login", "/api/v1/auth/register");
+      Set.of("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/installers/browse");
   private static final int CAPACITY = 10;
   private static final Duration REFILL_PERIOD = Duration.ofMinutes(1);
 

@@ -11,6 +11,9 @@ services:
       DB_PORT: "5432"
       SMTP_HOST: mailhog
       FILE_STORAGE_ENDPOINT: http://minio:9000
+      # Presigned URLs are handed to browsers outside the compose network, so they must use the
+      # host-published address, not the internal service hostname above.
+      FILE_STORAGE_PUBLIC_ENDPOINT: http://localhost:9000
     depends_on:
       db: { condition: service_healthy }
   web:

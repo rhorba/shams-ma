@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -50,10 +51,14 @@ class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/actuator/health", "/error")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/installers/browse")
+                    .permitAll()
                     .requestMatchers("/api/v1/auth/mfa/**")
                     .hasRole("ADMIN")
                     .requestMatchers("/api/v1/admin/**")
                     .hasRole("ADMIN_MFA")
+                    .requestMatchers("/api/v1/installer/**")
+                    .hasRole("INSTALLER")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

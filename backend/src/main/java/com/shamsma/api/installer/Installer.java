@@ -67,4 +67,9 @@ public class Installer {
   public VerificationStatus getVerificationStatus() {
     return verificationStatus;
   }
+
+  public void markVerificationStatus(VerificationStatus verificationStatus) {
+    this.verificationStatus = verificationStatus;
+    this.updatedAt = Instant.now();
+  }
 }
