@@ -31,6 +31,20 @@
 		<!-- CVE-2026-54291 (SCRAM-SHA-256-PLUS downgrade MITM) fixed in 42.7.12; override the BOM's 42.7.11 -->
 		<postgresql.version>42.7.12</postgresql.version>
 	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<!-- CVE-2026-59901/-55831/-55833/-56745 (netty-codec-compression/-http, pulled in
+				 transitively by the AWS SDK's netty-nio-client); fixed in 4.2.16.Final, overriding
+				 the awssdk:s3 POM's 4.2.15.Final via the upstream Netty BOM. -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-bom</artifactId>
+				<version>4.2.16.Final</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

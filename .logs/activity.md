@@ -83,3 +83,9 @@ All 6 CI/security-config fixes and 1 real dependency CVE fix are also mirrored i
 - Frontend: `npm run lint` clean (3 pre-existing informational warnings, no errors). `npm test -- --coverage`: 19/19 tests pass (one `LoginPage` test timed out on the first full-suite run under this sandbox's slow parallel execution; reran in isolation and in the full suite again — passed both times, confirmed flake not a bug). Coverage 90.27% stmts / 80.68% branch / 85.36% funcs / 91.3% lines — meets the 80% gate.
 - Security spot-check: diffed all changed/new files for hardcoded secrets/keys/passwords — none found. New backend dependency (aws S3 SDK) already covered by existing Trivy SCA job.
 - No new env vars required (FILE_STORAGE_PUBLIC_ENDPOINT already documented in .env.example, defaults to FILE_STORAGE_ENDPOINT).
+
+## 2026-07-26 (cont.) — PUSH
+- PUSH: main -> origin/main. Commit 0171b8e (feat(epic-1): installer onboarding & verification). 69 files changed. Monitoring CI next.
+
+## 2026-07-26 (cont.) — CI RED -> fixing security gate
+- CI run 30222831263: backend + frontend jobs GREEN (coverage gate passed in CI, confirming local estimates). `security` job RED on the Trivy step: 4 HIGH CVEs (netty, transitive via AWS S3 SDK's netty-nio-client) + 1 HIGH CVE (react-router, GHSA-qwww-vcr4-c8h2). See .logs/decisions.md for the fix/accept reasoning for each. Fixed netty via a netty-bom import (4.2.16.Final); accepted the react-router finding via .trivyignore (RSC-only vuln, this app doesn't use RSC/data routers). Backend rebuild + spotless + unit tests reconfirmed green locally after the netty fix. Pushing follow-up commit and re-monitoring CI per rule 11.

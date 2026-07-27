@@ -10,3 +10,11 @@ CVE-2026-27136
 CVE-2026-33814
 CVE-2026-39821
 CVE-2026-39822
+
+# GHSA-qwww-vcr4-c8h2 (react-router, fixed in 8.3.0): CSRF bypass specific to React Router's RSC
+# (React Server Components) framework mode — action execution before the expected 400 response.
+# This app is a plain client-side SPA (frontend/src/App.tsx: declarative <Routes>/<Route>, no
+# data router, no loaders/actions, no RSC), so the vulnerable code path is never reached. A fix
+# requires a react-router-dom 7->8 major bump; revisit when that's done for other reasons rather
+# than rushing a major-version jump under a security-gate deadline.
+GHSA-qwww-vcr4-c8h2
