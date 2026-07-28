@@ -10,4 +10,6 @@ public interface NotificationService {
 
   void notifyQuoteResponse(
       UUID homeownerId, UUID quoteRequestId, boolean quoted, BigDecimal quoteAmount);
+
+  void notifyPaymentSucceeded(UUID bookingId, UUID paymentId);
 }

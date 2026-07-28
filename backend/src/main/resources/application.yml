@@ -25,6 +25,12 @@ app:
     access-key: ${FILE_STORAGE_ACCESS_KEY:minioadmin}
     secret-key: ${FILE_STORAGE_SECRET_KEY:minioadmin}
     bucket: ${FILE_STORAGE_BUCKET:shamsma-certs-dev}
+  cmi:
+    # No real CMI merchant account exists yet (see Epic 4 planning) — MockCmiCheckoutServiceImpl
+    # is the only CmiCheckoutService implementation, so merchant-id/api-key aren't consumed
+    # anywhere yet. secret is real and used for HMAC webhook signature verification even against
+    # the mock, so it always needs a value (dev/test default below).
+    secret: ${CMI_SECRET:mock-cmi-dev-secret}
 
 geocoding:
   base-url: ${GEOCODING_BASE_URL:https://nominatim.openstreetmap.org}

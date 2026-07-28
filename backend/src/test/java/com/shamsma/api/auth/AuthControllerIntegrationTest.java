@@ -22,7 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest
+@SpringBootTest(properties = "app.rate-limit.capacity=1000")
 @AutoConfigureMockMvc
 class AuthControllerIntegrationTest {
 

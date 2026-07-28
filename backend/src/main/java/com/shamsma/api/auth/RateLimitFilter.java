@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -18,6 +19,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * In-memory per-IP rate limiting on login/registration, per Security doc section 6. Single-instance
  * MVP scale (per System Design) — no Redis/distributed store needed; revisit if we ever run
  * multiple API replicas.
+ *
+ * <p>Capacity/refill period are configurable (defaults match production: 10/min) because this
+ * bucket is a singleton in-memory map shared by every test class in the same cached Spring test
+ * context — enough integration tests hitting /api/v1/auth/register or /api/v1/payments/webhook
+ * across the whole suite will otherwise legitimately exhaust the real production budget and 429.
+ * Tests override via {@code @SpringBootTest(properties = "app.rate-limit.capacity=1000")}.
  */
 @Component
 class RateLimitFilter extends OncePerRequestFilter {
@@ -27,11 +34,19 @@ class RateLimitFilter extends OncePerRequestFilter {
           "/api/v1/auth/login",
           "/api/v1/auth/register",
           "/api/v1/installers/browse",
-          "/api/v1/roi/estimate");
-  private static final int CAPACITY = 10;
-  private static final Duration REFILL_PERIOD = Duration.ofMinutes(1);
+          "/api/v1/roi/estimate",
+          "/api/v1/payments/webhook");
 
+  private final int capacity;
+  private final Duration refillPeriod;
   private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+  RateLimitFilter(
+      @Value("${app.rate-limit.capacity:10}") int capacity,
+      @Value("${app.rate-limit.refill-period-seconds:60}") long refillPeriodSeconds) {
+    this.capacity = capacity;
+    this.refillPeriod = Duration.ofSeconds(refillPeriodSeconds);
+  }
 
   @Override
   protected void doFilterInternal(
@@ -53,8 +68,8 @@ class RateLimitFilter extends OncePerRequestFilter {
     chain.doFilter(request, response);
   }
 
-  private static Bucket newBucket() {
-    Bandwidth limit = Bandwidth.classic(CAPACITY, Refill.greedy(CAPACITY, REFILL_PERIOD));
+  private Bucket newBucket() {
+    Bandwidth limit = Bandwidth.classic(capacity, Refill.greedy(capacity, refillPeriod));
     return Bucket.builder().addLimit(limit).build();
   }
 

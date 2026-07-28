@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
@@ -33,6 +34,7 @@ const STATUS_COLOR: Record<QuoteRequestSummary['status'], 'default' | 'success' 
 export default function HomeownerRequestsPage() {
   const { accessToken } = useAuth()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['homeowner-quote-requests'],
@@ -42,8 +44,14 @@ export default function HomeownerRequestsPage() {
 
   const book = useMutation({
     mutationFn: (id: string) =>
-      apiFetch(`/api/v1/homeowner/quote-requests/${id}/book`, { method: 'POST', accessToken }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['homeowner-quote-requests'] }),
+      apiFetch<{ id: string }>(`/api/v1/homeowner/quote-requests/${id}/book`, {
+        method: 'POST',
+        accessToken,
+      }),
+    onSuccess: (booking) => {
+      queryClient.invalidateQueries({ queryKey: ['homeowner-quote-requests'] })
+      navigate(`/homeowner/bookings/${booking.id}/checkout`)
+    },
   })
 
   if (isLoading) return <CircularProgress />

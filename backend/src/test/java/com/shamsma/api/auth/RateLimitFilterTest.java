@@ -20,7 +20,7 @@ class RateLimitFilterTest {
 
   @Test
   void exhaustingOnePathDoesNotLimitADifferentPathForTheSameClient() throws Exception {
-    RateLimitFilter filter = new RateLimitFilter();
+    RateLimitFilter filter = new RateLimitFilter(10, 60);
 
     // Drain the 10-request/minute budget for /api/v1/roi/estimate.
     for (int i = 0; i < 10; i++) {
@@ -34,7 +34,7 @@ class RateLimitFilterTest {
 
   @Test
   void returns429OnceCapacityIsExceeded() throws Exception {
-    RateLimitFilter filter = new RateLimitFilter();
+    RateLimitFilter filter = new RateLimitFilter(10, 60);
 
     for (int i = 0; i < 10; i++) {
       assertThat(callFilter(filter, "/api/v1/auth/login")).isEqualTo(200);

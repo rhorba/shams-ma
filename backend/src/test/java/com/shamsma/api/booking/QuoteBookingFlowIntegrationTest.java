@@ -36,7 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * tripped 429s — a rate-limiter-vs-test-volume issue, not an app bug).
  */
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest
+@SpringBootTest(properties = "app.rate-limit.capacity=1000")
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class QuoteBookingFlowIntegrationTest {

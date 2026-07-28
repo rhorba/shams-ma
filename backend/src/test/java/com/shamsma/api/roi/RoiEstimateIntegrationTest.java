@@ -23,7 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * needed only because it backs the whole Spring context (this endpoint itself touches no DB).
  */
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest
+@SpringBootTest(properties = "app.rate-limit.capacity=1000")
 @AutoConfigureMockMvc
 class RoiEstimateIntegrationTest {
 

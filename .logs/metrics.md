@@ -20,3 +20,7 @@
 - Backend: full suite (59 tests incl. all Testcontainers integration classes, real Docker via PowerShell) confirmed GREEN exit-code-0 earlier this session (see activity.md Batch 2/3 entries); `mvn compile` + `spotless:check` re-confirmed clean at SHIP time.
 - Frontend: 9 test files / 26 tests passing. Coverage 94.31% stmts / 85.71% branch / 92.59% funcs / 95.26% lines (lcov-verified — istanbul's printed text-report table cosmetically drops the `src/features/roi`, `src/test-utils.tsx`, and `src/theme.ts` rows, but their line counts ARE included in the totals, confirmed against raw lcov.info sums matching the reported 161/169 lines). Meets the 80% gate.
 - Secret spot-check: diffed all changed + new files for hardcoded secrets/keys/passwords — none found.
+
+## 2026-07-28 (cont.) — Epic 4 SHIP (Payments — Stories 4.1-4.2)
+- Backend: 113 tests total (all Testcontainers integration classes incl. 9 new for payment, real Docker via PowerShell), 0 failures. JaCoCo could not run locally (same JDK25/0.8.12 mismatch as prior sessions) — coverage gate to be confirmed via CI.
+- Frontend: 12 test files / 38 tests passing. Coverage 94.97% stmts / 83.52% branch / 95.06% funcs / 96.87% lines — meets the 80% gate.

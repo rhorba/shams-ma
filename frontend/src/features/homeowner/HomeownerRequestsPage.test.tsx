@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Route, Routes } from 'react-router-dom'
 import HomeownerRequestsPage from './HomeownerRequestsPage'
 import { renderWithProviders } from '../../test-utils'
 
@@ -42,15 +43,23 @@ describe('HomeownerRequestsPage', () => {
     await waitFor(() => expect(screen.getByText(/haven't requested/i)).toBeInTheDocument())
   })
 
-  it('books a quoted request and refetches', async () => {
+  it('books a quoted request, refetches, and navigates to the checkout page', async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(new Response(JSON.stringify(QUOTED), { status: 200 }))
       .mockResolvedValueOnce(
-        new Response(null, { status: 201, headers: { 'content-length': '0' } }),
+        new Response(JSON.stringify({ id: 'booking-1', status: 'PENDING_PAYMENT' }), {
+          status: 201,
+        }),
       )
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
 
-    renderWithProviders(<HomeownerRequestsPage />)
+    renderWithProviders(
+      <Routes>
+        <Route path="/homeowner/requests" element={<HomeownerRequestsPage />} />
+        <Route path="/homeowner/bookings/:bookingId/checkout" element={<div>checkout page</div>} />
+      </Routes>,
+      ['/homeowner/requests'],
+    )
     await waitFor(() => expect(screen.getByText('Solaire Atlas')).toBeInTheDocument())
 
     await userEvent.click(screen.getByRole('button', { name: /^book$/i }))
@@ -61,5 +70,6 @@ describe('HomeownerRequestsPage', () => {
         expect.objectContaining({ method: 'POST' }),
       ),
     )
+    expect(await screen.findByText('checkout page')).toBeInTheDocument()
   })
 })

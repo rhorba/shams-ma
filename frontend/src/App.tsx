@@ -12,6 +12,7 @@ import CertificationQueuePage from './features/admin/CertificationQueuePage'
 import BrowsePage from './features/browse/BrowsePage'
 import RoiCalculatorPage from './features/roi/RoiCalculatorPage'
 import HomeownerRequestsPage from './features/homeowner/HomeownerRequestsPage'
+import PaymentCheckoutPage from './features/homeowner/PaymentCheckoutPage'
 
 function Nav() {
   const { role, logout } = useAuth()
@@ -78,6 +79,14 @@ function App() {
           element={
             <RequireRole role="HOMEOWNER">
               <HomeownerRequestsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/homeowner/bookings/:bookingId/checkout"
+          element={
+            <RequireRole role="HOMEOWNER">
+              <PaymentCheckoutPage />
             </RequireRole>
           }
         />

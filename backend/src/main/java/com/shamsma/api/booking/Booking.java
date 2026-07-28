@@ -67,4 +67,9 @@ public class Booking {
   public Instant getCreatedAt() {
     return createdAt;
   }
+
+  public void markBooked() {
+    this.status = BookingStatus.BOOKED;
+    this.updatedAt = Instant.now();
+  }
 }

@@ -32,4 +32,9 @@ class LoggingNotificationServiceImpl implements NotificationService {
         quoted ? "QUOTED" : "DECLINED",
         quoted ? " amount=" + quoteAmount : "");
   }
+
+  @Override
+  public void notifyPaymentSucceeded(UUID bookingId, UUID paymentId) {
+    log.info("NOTIFY both parties: booking={} confirmed via payment={}", bookingId, paymentId);
+  }
 }

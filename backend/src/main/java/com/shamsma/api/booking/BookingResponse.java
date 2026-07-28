@@ -9,4 +9,14 @@ public record BookingResponse(
     UUID quoteRequestId,
     BookingStatus status,
     BigDecimal depositAmount,
-    Instant createdAt) {}
+    Instant createdAt) {
+
+  static BookingResponse from(Booking booking) {
+    return new BookingResponse(
+        booking.getId(),
+        booking.getQuoteRequestId(),
+        booking.getStatus(),
+        booking.getDepositAmount(),
+        booking.getCreatedAt());
+  }
+}

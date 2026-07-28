@@ -144,12 +144,7 @@ class QuoteRequestServiceImpl implements QuoteRequestService {
     request.markBooked();
     quoteRequestRepository.save(request);
 
-    return new BookingResponse(
-        booking.getId(),
-        booking.getQuoteRequestId(),
-        booking.getStatus(),
-        booking.getDepositAmount(),
-        booking.getCreatedAt());
+    return BookingResponse.from(booking);
   }
 
   private QuoteRequest findOwnedByInstaller(UUID requestId, UUID installerId) {

@@ -35,7 +35,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * against a real dependency" rationale as the Postgres/PostGIS container).
  */
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest
+@SpringBootTest(properties = "app.rate-limit.capacity=1000")
 @AutoConfigureMockMvc
 @Testcontainers
 class CertificationFlowIntegrationTest {

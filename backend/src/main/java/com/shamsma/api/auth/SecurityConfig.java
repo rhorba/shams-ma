@@ -55,6 +55,8 @@ class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/roi/estimate")
                     .permitAll()
+                    .requestMatchers("/api/v1/payments/webhook", "/api/v1/mock-cmi/**")
+                    .permitAll()
                     .requestMatchers("/api/v1/auth/mfa/**")
                     .hasRole("ADMIN")
                     .requestMatchers("/api/v1/admin/**")
