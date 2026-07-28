@@ -118,3 +118,6 @@ All 6 CI/security-config fixes and 1 real dependency CVE fix are also mirrored i
 - Backend: `mvn -DskipTests compile` and `mvn spotless:check` both clean (re-confirms no drift since Batch 3's already-logged full Testcontainers run earlier this session).
 - Security spot-check: `git diff` across all changed backend/frontend source plus the new untracked roi/RateLimitFilterTest files, grepped for password/secret/api-key/token/private-key/AWS-key patterns — only false-positive match was a local variable named `accessToken` in a test; no real secrets found.
 - All VERIFY gates pass. Proceeding to SHIP (commit + push + CI monitoring per rule 11).
+- PUSH: main -> origin/main. Commit 261a329 (feat(epic-2): homeowner discovery — ROI calculator + address-based browse). 31 files changed. Monitoring CI next.
+- CI run 30346831850: all 5 jobs GREEN on the first push (backend, security, frontend, build, deploy-staging) — no follow-up fix needed this time. CI monitoring complete per rule 11.
+- MILESTONE: Epic 2 (Homeowner Discovery — Story 2.1 ROI/payback calculator, Story 2.2 address-based browse) fully shipped: backend + frontend built, verified, committed (261a329), pushed, CI green.
