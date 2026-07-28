@@ -52,4 +52,15 @@ class InstallerServiceImpl implements InstallerService {
                     row.getUserId(), row.getBusinessName(), row.getPhone(), row.getDistanceKm()))
         .toList();
   }
+
+  @Override
+  public List<InstallerBrowseResult> browseByAddress(String address) {
+    GeoPoint point;
+    try {
+      point = geocodingService.geocode(address);
+    } catch (GeocodingException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+    return browse(point.lat(), point.lng());
+  }
 }

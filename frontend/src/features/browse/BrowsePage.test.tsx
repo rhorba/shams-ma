@@ -13,7 +13,7 @@ describe('BrowsePage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('searches by lat/lng and renders results', async () => {
+  it('searches by address and renders results', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(
         JSON.stringify([
@@ -24,13 +24,12 @@ describe('BrowsePage', () => {
     )
 
     renderWithProviders(<BrowsePage />)
-    await userEvent.type(screen.getByLabelText(/latitude/i), '34.02')
-    await userEvent.type(screen.getByLabelText(/longitude/i), '-6.84')
+    await userEvent.type(screen.getByLabelText(/address/i), 'Rabat, Morocco')
     await userEvent.click(screen.getByRole('button', { name: /^search$/i }))
 
     await waitFor(() => expect(screen.getByText('Solaire Atlas')).toBeInTheDocument())
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/installers/browse?lat=34.02&lng=-6.84'),
+      expect.stringContaining('/api/v1/installers/browse?address=Rabat%2C%20Morocco'),
       expect.anything(),
     )
   })
@@ -39,10 +38,46 @@ describe('BrowsePage', () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
 
     renderWithProviders(<BrowsePage />)
-    await userEvent.type(screen.getByLabelText(/latitude/i), '0')
-    await userEvent.type(screen.getByLabelText(/longitude/i), '0')
+    await userEvent.type(screen.getByLabelText(/address/i), 'Nowhere')
     await userEvent.click(screen.getByRole('button', { name: /^search$/i }))
 
     await waitFor(() => expect(screen.getByText(/no verified installers/i)).toBeInTheDocument())
+  })
+
+  it('auto-searches using lat/lng passed in the URL (ROI calculator deep link)', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify([
+          { userId: 'inst-2', businessName: 'Solaire Nord', phone: null, distanceKm: 1.1 },
+        ]),
+        { status: 200 },
+      ),
+    )
+
+    renderWithProviders(<BrowsePage />, ['/browse?lat=34.0209&lng=-6.8416'])
+
+    await waitFor(() => expect(screen.getByText('Solaire Nord')).toBeInTheDocument())
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/installers/browse?lat=34.0209&lng=-6.8416'),
+      expect.anything(),
+    )
+  })
+
+  it('searches using the browser geolocation position', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+    const getCurrentPosition = vi.fn((success: PositionCallback) =>
+      success({ coords: { latitude: 30.4278, longitude: -9.5981 } } as GeolocationPosition),
+    )
+    vi.stubGlobal('navigator', { ...navigator, geolocation: { getCurrentPosition } })
+
+    renderWithProviders(<BrowsePage />)
+    await userEvent.click(screen.getByRole('button', { name: /use my location/i }))
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/v1/installers/browse?lat=30.4278&lng=-9.5981'),
+        expect.anything(),
+      ),
+    )
   })
 })

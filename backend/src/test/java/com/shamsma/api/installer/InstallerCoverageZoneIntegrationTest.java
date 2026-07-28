@@ -111,6 +111,44 @@ class InstallerCoverageZoneIntegrationTest {
         .andExpect(status().isOk());
   }
 
+  @Test
+  void browseByAddressGeocodesServerSideAndFindsInstallersWithinRadius() throws Exception {
+    String accessToken =
+        registerLoginInstaller(
+            "installer-byaddress-" + UUID.randomUUID() + "@example.com", "Solaire Address");
+    org.mockito.Mockito.when(geocodingService.geocode("Rabat, Morocco"))
+        .thenReturn(new GeoPoint(34.020882, -6.841650));
+
+    mockMvc
+        .perform(
+            put("/api/v1/installer/coverage-zone")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"addressText":"Rabat, Morocco","radiusKm":30}
+                    """))
+        .andExpect(status().isOk());
+
+    mockMvc
+        .perform(get("/api/v1/installers/browse").param("address", "Rabat, Morocco"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$", hasSize(0))); // not APPROVED yet -> excluded, same as the lat/lng path
+  }
+
+  @Test
+  void browseRejectsRequestsWithNeitherAddressNorLatLng() throws Exception {
+    mockMvc.perform(get("/api/v1/installers/browse")).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void browseRejectsPartialLatLng() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/installers/browse").param("lat", "34.02"))
+        .andExpect(status().isBadRequest());
+  }
+
   private String registerLoginInstaller(String email, String businessName) throws Exception {
     var registerBody =
         """

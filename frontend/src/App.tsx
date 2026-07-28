@@ -10,6 +10,7 @@ import RequireRole from './auth/RequireRole'
 import InstallerDashboardPage from './features/installer/InstallerDashboardPage'
 import CertificationQueuePage from './features/admin/CertificationQueuePage'
 import BrowsePage from './features/browse/BrowsePage'
+import RoiCalculatorPage from './features/roi/RoiCalculatorPage'
 
 function Nav() {
   const { role, logout } = useAuth()
@@ -20,6 +21,9 @@ function Nav() {
           Shams.ma
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
+        <Button component={Link} to="/roi">
+          ROI Calculator
+        </Button>
         <Button component={Link} to="/browse">
           Browse
         </Button>
@@ -61,6 +65,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/roi" element={<RoiCalculatorPage />} />
         <Route path="/browse" element={<BrowsePage />} />
         <Route
           path="/installer"

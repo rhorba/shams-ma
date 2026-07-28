@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -20,30 +21,41 @@ interface InstallerBrowseResult {
   distanceKm: number
 }
 
+type BrowseQuery = { address: string } | { lat: number; lng: number }
+
+function buildQueryString(query: BrowseQuery): string {
+  if ('address' in query) {
+    return `address=${encodeURIComponent(query.address)}`
+  }
+  return `lat=${query.lat}&lng=${query.lng}`
+}
+
+function initialQueryFromUrl(searchParams: URLSearchParams): BrowseQuery | null {
+  const lat = searchParams.get('lat')
+  const lng = searchParams.get('lng')
+  return lat !== null && lng !== null ? { lat: Number(lat), lng: Number(lng) } : null
+}
+
 export default function BrowsePage() {
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
-  const [latInput, setLatInput] = useState('')
-  const [lngInput, setLngInput] = useState('')
+  const [searchParams] = useSearchParams()
+  const [address, setAddress] = useState('')
+  const [query, setQuery] = useState<BrowseQuery | null>(() => initialQueryFromUrl(searchParams))
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['browse', coords],
+    queryKey: ['browse', query],
     queryFn: () =>
-      apiFetch<InstallerBrowseResult[]>(
-        `/api/v1/installers/browse?lat=${coords!.lat}&lng=${coords!.lng}`,
-      ),
-    enabled: coords !== null,
+      apiFetch<InstallerBrowseResult[]>(`/api/v1/installers/browse?${buildQueryString(query!)}`),
+    enabled: query !== null,
   })
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
-    setCoords({ lat: Number(latInput), lng: Number(lngInput) })
+    setQuery({ address })
   }
 
   const useMyLocation = () => {
     navigator.geolocation.getCurrentPosition((position) => {
-      setLatInput(String(position.coords.latitude))
-      setLngInput(String(position.coords.longitude))
-      setCoords({ lat: position.coords.latitude, lng: position.coords.longitude })
+      setQuery({ lat: position.coords.latitude, lng: position.coords.longitude })
     })
   }
 
@@ -53,18 +65,13 @@ export default function BrowsePage() {
       <Box component="form" onSubmit={handleSubmit}>
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
           <TextField
-            label="Latitude"
-            value={latInput}
-            onChange={(e) => setLatInput(e.target.value)}
+            label="Address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="e.g. Rabat, Morocco"
             size="small"
             required
-          />
-          <TextField
-            label="Longitude"
-            value={lngInput}
-            onChange={(e) => setLngInput(e.target.value)}
-            size="small"
-            required
+            sx={{ minWidth: 260 }}
           />
           <Button type="submit" variant="contained">
             Search

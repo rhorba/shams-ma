@@ -99,4 +99,26 @@ class InstallerServiceImplTest {
         .containsExactly(
             new InstallerBrowseResult(installerId, "Solaire Atlas", "+212600000000", 4.2));
   }
+
+  @Test
+  void browseByAddressGeocodesThenDelegatesToBrowse() {
+    service = new InstallerServiceImpl(installerRepository, geocodingService);
+    when(geocodingService.geocode("Rabat, Morocco")).thenReturn(new GeoPoint(34.02, -6.84));
+    when(installerRepository.findWithinRadius(34.02, -6.84)).thenReturn(List.of());
+
+    List<InstallerBrowseResult> results = service.browseByAddress("Rabat, Morocco");
+
+    assertThat(results).isEmpty();
+    verify(installerRepository).findWithinRadius(34.02, -6.84);
+  }
+
+  @Test
+  void browseByAddressTranslatesGeocodingFailureTo400() {
+    service = new InstallerServiceImpl(installerRepository, geocodingService);
+    when(geocodingService.geocode("nonsense")).thenThrow(new GeocodingException("bad address"));
+
+    assertThatThrownBy(() -> service.browseByAddress("nonsense"))
+        .isInstanceOf(ResponseStatusException.class)
+        .hasMessageContaining("bad address");
+  }
 }

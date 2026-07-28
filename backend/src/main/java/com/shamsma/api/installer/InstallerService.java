@@ -17,4 +17,7 @@ public interface InstallerService {
 
   /** Public browse: approved installers whose coverage zone contains the given point. */
   List<InstallerBrowseResult> browse(double lat, double lng);
+
+  /** Geocodes {@code address} then delegates to {@link #browse(double, double)}. */
+  List<InstallerBrowseResult> browseByAddress(String address);
 }

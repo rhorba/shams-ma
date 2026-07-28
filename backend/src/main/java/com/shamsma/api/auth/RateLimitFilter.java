@@ -23,7 +23,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 class RateLimitFilter extends OncePerRequestFilter {
 
   private static final Set<String> LIMITED_PATHS =
-      Set.of("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/installers/browse");
+      Set.of(
+          "/api/v1/auth/login",
+          "/api/v1/auth/register",
+          "/api/v1/installers/browse",
+          "/api/v1/roi/estimate");
   private static final int CAPACITY = 10;
   private static final Duration REFILL_PERIOD = Duration.ofMinutes(1);
 
@@ -33,8 +37,12 @@ class RateLimitFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws ServletException, IOException {
-    if (LIMITED_PATHS.contains(request.getRequestURI())) {
-      Bucket bucket = buckets.computeIfAbsent(clientKey(request), key -> newBucket());
+    String path = request.getRequestURI();
+    if (LIMITED_PATHS.contains(path)) {
+      // Keyed by client + path (not client alone) so hammering one public endpoint (e.g. the ROI
+      // calculator) can't also exhaust an unrelated endpoint's budget (e.g. login) for the same
+      // IP/NAT.
+      Bucket bucket = buckets.computeIfAbsent(clientKey(request) + ":" + path, key -> newBucket());
       if (!bucket.tryConsume(1)) {
         response.setStatus(429);
         response.setContentType("application/json");
