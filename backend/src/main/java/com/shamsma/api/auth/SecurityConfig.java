@@ -61,6 +61,8 @@ class SecurityConfig {
                     .hasRole("ADMIN_MFA")
                     .requestMatchers("/api/v1/installer/**")
                     .hasRole("INSTALLER")
+                    .requestMatchers("/api/v1/homeowner/**")
+                    .hasRole("HOMEOWNER")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

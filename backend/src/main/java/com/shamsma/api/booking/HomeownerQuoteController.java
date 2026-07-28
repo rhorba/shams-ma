@@ -1,0 +1,54 @@
+package com.shamsma.api.booking;
+
+import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/** Self-service endpoints for the authenticated homeowner's own quote requests. */
+@RestController
+@RequestMapping("/api/v1/homeowner/quote-requests")
+class HomeownerQuoteController {
+
+  private final QuoteRequestService quoteRequestService;
+
+  HomeownerQuoteController(QuoteRequestService quoteRequestService) {
+    this.quoteRequestService = quoteRequestService;
+  }
+
+  @PostMapping
+  ResponseEntity<List<QuoteRequestSummary>> requestQuotes(
+      Authentication authentication, @Valid @RequestBody QuoteRequestCreateRequest request) {
+    List<QuoteRequestSummary> created =
+        quoteRequestService.requestQuotes(
+            currentUserId(authentication),
+            request.installerIds(),
+            request.message(),
+            request.roiEstimateKwh(),
+            request.roiPaybackYears());
+    return ResponseEntity.status(HttpStatus.CREATED).body(created);
+  }
+
+  @GetMapping
+  List<QuoteRequestSummary> myRequests(Authentication authentication) {
+    return quoteRequestService.listForHomeowner(currentUserId(authentication));
+  }
+
+  @PostMapping("/{id}/book")
+  ResponseEntity<BookingResponse> book(Authentication authentication, @PathVariable UUID id) {
+    BookingResponse booking = quoteRequestService.book(currentUserId(authentication), id);
+    return ResponseEntity.status(HttpStatus.CREATED).body(booking);
+  }
+
+  private static UUID currentUserId(Authentication authentication) {
+    return UUID.fromString((String) authentication.getPrincipal());
+  }
+}

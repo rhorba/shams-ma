@@ -11,6 +11,7 @@ import InstallerDashboardPage from './features/installer/InstallerDashboardPage'
 import CertificationQueuePage from './features/admin/CertificationQueuePage'
 import BrowsePage from './features/browse/BrowsePage'
 import RoiCalculatorPage from './features/roi/RoiCalculatorPage'
+import HomeownerRequestsPage from './features/homeowner/HomeownerRequestsPage'
 
 function Nav() {
   const { role, logout } = useAuth()
@@ -27,6 +28,11 @@ function Nav() {
         <Button component={Link} to="/browse">
           Browse
         </Button>
+        {role === 'HOMEOWNER' && (
+          <Button component={Link} to="/homeowner/requests">
+            My requests
+          </Button>
+        )}
         {role === 'INSTALLER' && (
           <Button component={Link} to="/installer">
             My dashboard
@@ -67,6 +73,14 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/roi" element={<RoiCalculatorPage />} />
         <Route path="/browse" element={<BrowsePage />} />
+        <Route
+          path="/homeowner/requests"
+          element={
+            <RequireRole role="HOMEOWNER">
+              <HomeownerRequestsPage />
+            </RequireRole>
+          }
+        />
         <Route
           path="/installer"
           element={

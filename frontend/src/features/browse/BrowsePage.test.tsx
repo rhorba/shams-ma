@@ -1,8 +1,30 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useEffect, useState } from 'react'
 import BrowsePage from './BrowsePage'
+import { useAuth } from '../../auth/AuthContext'
 import { renderWithProviders } from '../../test-utils'
+
+// Same test-only login-seeding pattern as auth/RequireRole.test.tsx.
+function LoggedInThen({
+  email,
+  password,
+  children,
+}: {
+  email: string
+  password: string
+  children: React.ReactNode
+}) {
+  const { login, role } = useAuth()
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    login(email, password).then(() => setReady(true))
+    // Intentionally run once on mount — this is test-only login-seeding, not app code.
+  }, [])
+  if (!ready || !role) return null
+  return <>{children}</>
+}
 
 describe('BrowsePage', () => {
   beforeEach(() => {
@@ -79,5 +101,50 @@ describe('BrowsePage', () => {
         expect.anything(),
       ),
     )
+  })
+
+  it('lets a logged-in homeowner request a quote from a listed installer', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            accessToken: 't',
+            tokenType: 'Bearer',
+            expiresIn: 900,
+            role: 'HOMEOWNER',
+            mfaEnrolled: false,
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            { userId: 'inst-1', businessName: 'Solaire Atlas', phone: null, distanceKm: 2.5 },
+          ]),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify([{ id: 'qr-1' }]), { status: 201 }))
+
+    renderWithProviders(
+      <LoggedInThen email="homeowner@example.com" password="pw">
+        <BrowsePage />
+      </LoggedInThen>,
+    )
+
+    await userEvent.type(await screen.findByLabelText(/address/i), 'Rabat, Morocco')
+    await userEvent.click(screen.getByRole('button', { name: /^search$/i }))
+    await waitFor(() => expect(screen.getByText('Solaire Atlas')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: /request quote/i }))
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/v1/homeowner/quote-requests'),
+        expect.objectContaining({ method: 'POST' }),
+      ),
+    )
+    expect(await screen.findByText(/quote requested/i)).toBeInTheDocument()
   })
 })

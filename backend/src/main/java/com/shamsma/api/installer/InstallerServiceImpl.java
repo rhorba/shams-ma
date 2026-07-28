@@ -63,4 +63,18 @@ class InstallerServiceImpl implements InstallerService {
     }
     return browse(point.lat(), point.lng());
   }
+
+  @Override
+  public InstallerSummary getSummary(UUID installerId) {
+    Installer installer =
+        installerRepository
+            .findById(installerId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Installer not found"));
+    return new InstallerSummary(
+        installer.getUserId(),
+        installer.getBusinessName(),
+        installer.getPhone(),
+        installer.getVerificationStatus());
+  }
 }

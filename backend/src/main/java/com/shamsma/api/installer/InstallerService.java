@@ -20,4 +20,7 @@ public interface InstallerService {
 
   /** Geocodes {@code address} then delegates to {@link #browse(double, double)}. */
   List<InstallerBrowseResult> browseByAddress(String address);
+
+  /** Cross-package lookup (e.g. for booking) — throws 404 if the installer doesn't exist. */
+  InstallerSummary getSummary(UUID installerId);
 }

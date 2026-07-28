@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -12,6 +12,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useAuth } from '../../auth/AuthContext'
 import { apiFetch } from '../../lib/api'
 
 interface InstallerBrowseResult {
@@ -37,15 +38,28 @@ function initialQueryFromUrl(searchParams: URLSearchParams): BrowseQuery | null 
 }
 
 export default function BrowsePage() {
+  const { accessToken, role } = useAuth()
   const [searchParams] = useSearchParams()
   const [address, setAddress] = useState('')
   const [query, setQuery] = useState<BrowseQuery | null>(() => initialQueryFromUrl(searchParams))
+  const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set())
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['browse', query],
     queryFn: () =>
       apiFetch<InstallerBrowseResult[]>(`/api/v1/installers/browse?${buildQueryString(query!)}`),
     enabled: query !== null,
+  })
+
+  const requestQuote = useMutation({
+    mutationFn: (installerId: string) =>
+      apiFetch('/api/v1/homeowner/quote-requests', {
+        method: 'POST',
+        accessToken,
+        body: JSON.stringify({ installerIds: [installerId] }),
+      }),
+    onSuccess: (_data, installerId) =>
+      setRequestedIds((prev) => new Set(prev).add(installerId)),
   })
 
   const handleSubmit = (event: FormEvent) => {
@@ -96,6 +110,20 @@ export default function BrowsePage() {
               {installer.distanceKm.toFixed(1)} km away
               {installer.phone ? ` · ${installer.phone}` : ''}
             </Typography>
+            {role === 'HOMEOWNER' &&
+              (requestedIds.has(installer.userId) ? (
+                <Chip label="Quote requested" color="success" size="small" sx={{ mt: 1 }} />
+              ) : (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ mt: 1 }}
+                  disabled={requestQuote.isPending}
+                  onClick={() => requestQuote.mutate(installer.userId)}
+                >
+                  Request quote
+                </Button>
+              ))}
           </CardContent>
         </Card>
       ))}
