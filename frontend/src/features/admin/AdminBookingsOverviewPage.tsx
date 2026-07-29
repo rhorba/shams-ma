@@ -99,7 +99,7 @@ export default function AdminBookingsOverviewPage() {
     <Stack spacing={2} sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
       <Typography variant="h4">Booking &amp; payment overview</Typography>
 
-      <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <TextField
           select
           label="Booking status"
