@@ -39,3 +39,6 @@ Reused existing infra instead of building new: `AuditLogService`/`audit_log` tab
 
 ## 2026-07-28 (cont.) — Epic 5 plan confirmed
 User approved Batches 1-4 as planned. For the rule-9 video-recording requirement (Epic 5 completes every story in stories-shams-ma.md, i.e. MVP version-completion): user chose option B — skip the Playwright video recording this session, log it as an explicitly deferred gap/follow-up rather than adding new Playwright tooling now or doing an unrecorded manual smoke pass.
+
+## 2026-07-29 (cont.) — Post-MVP cleanup scope
+User asked to resolve every remaining longstanding open item (deposit rate, skills/ duplication, JaCoCo/JDK25, react-router-dom major bump, deferred Playwright recording) EXCEPT the missing real CMI merchant account, which was explicitly excluded (needs an actual bank relationship, not buildable). Via AskUserQuestion, user confirmed the 10% deposit rate should be kept and documented as the real business rule rather than replaced with a different number or a tiered/capped scheme.

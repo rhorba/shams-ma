@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Route, Routes, useSearchParams } from 'react-router-dom'
+import { Route, Routes, useSearchParams } from 'react-router'
 import RoiCalculatorPage from './RoiCalculatorPage'
 import { renderWithProviders } from '../../test-utils'
 

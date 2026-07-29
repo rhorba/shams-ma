@@ -19,9 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 class QuoteRequestServiceImpl implements QuoteRequestService {
 
   /**
-   * No deposit-percentage rule is defined anywhere in the docs (PRD/database docs only say a
-   * deposit is charged, not how much) — 10% of the installer's quote is a placeholder MVP default.
-   * Revisit when Epic 4 (Payments) actually wires up CMI checkout amounts.
+   * Booking deposit is 10% of the installer's quote (confirmed business rule, see PRD section 5).
    */
   private static final BigDecimal DEPOSIT_RATE = new BigDecimal("0.10");
 

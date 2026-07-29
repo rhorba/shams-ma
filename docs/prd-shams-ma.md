@@ -47,7 +47,7 @@ Morocco targets 52% renewable energy by 2030 and subsidizes residential solar, b
 - FR-5: Homeowners can submit a quote request to one or more installers; installers see requests in a lead inbox.
 - FR-6: Installers can respond to a quote request (quote amount + notes) or decline.
 - FR-7: Homeowner can book an installer from among responses; booking status is tracked (Requested → Quoted → Booked → Paid).
-- FR-8: On booking confirmation, homeowner pays a deposit via CMI; booking only moves to "Booked" once payment succeeds (webhook-confirmed).
+- FR-8: On booking confirmation, homeowner pays a deposit via CMI; booking only moves to "Booked" once payment succeeds (webhook-confirmed). Deposit amount = 10% of the installer's quoted price (flat rate, confirmed business rule — no tiering or cap for MVP).
 - FR-9: Admin can view all installers and their verification status, and approve/reject pending certifications.
 - FR-10: Admin can view payment/booking transaction status for dispute resolution.
 - FR-11: Email notification sent on: new quote request (installer), quote response (homeowner), certification decision (installer), payment confirmation (both parties).

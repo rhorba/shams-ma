@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: '22' }
       - run: npm ci
       - run: npm run lint
       - run: npm test -- --coverage
@@ -120,7 +120,7 @@ CMD ["java", "-jar", "app.jar"]
 
 ### Frontend (React)
 ```dockerfile
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
