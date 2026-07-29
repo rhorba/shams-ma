@@ -5,7 +5,11 @@ import com.shamsma.api.booking.BookingService;
 import com.shamsma.api.booking.BookingStatus;
 import com.shamsma.api.notification.NotificationService;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,8 +24,10 @@ class PaymentServiceImpl implements PaymentService {
 
   private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
   private static final String CURRENCY = "MAD";
+  private static final String AMOUNT_MISMATCH_REASON = "AMOUNT_MISMATCH";
 
   private final PaymentRepository paymentRepository;
+  private final PaymentReviewFlagRepository paymentReviewFlagRepository;
   private final BookingService bookingService;
   private final CmiCheckoutService cmiCheckoutService;
   private final CmiSignatureService cmiSignatureService;
@@ -30,12 +36,14 @@ class PaymentServiceImpl implements PaymentService {
 
   PaymentServiceImpl(
       PaymentRepository paymentRepository,
+      PaymentReviewFlagRepository paymentReviewFlagRepository,
       BookingService bookingService,
       CmiCheckoutService cmiCheckoutService,
       CmiSignatureService cmiSignatureService,
       NotificationService notificationService,
       ObjectMapper objectMapper) {
     this.paymentRepository = paymentRepository;
+    this.paymentReviewFlagRepository = paymentReviewFlagRepository;
     this.bookingService = bookingService;
     this.cmiCheckoutService = cmiCheckoutService;
     this.cmiSignatureService = cmiSignatureService;
@@ -79,7 +87,7 @@ class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  @Transactional
+  @Transactional(noRollbackFor = ResponseStatusException.class)
   public void processWebhook(String rawBody, String signature) {
     if (!cmiSignatureService.verify(rawBody, signature)) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid webhook signature");
@@ -106,15 +114,15 @@ class PaymentServiceImpl implements PaymentService {
     }
 
     if (payload.amount().compareTo(payment.getAmount()) != 0) {
-      // No "system" user exists to attribute an audit_log row to (actor_user_id is NOT NULL,
-      // FK'd to users) — logging is the flag-for-review mechanism until Epic 5 (Admin Oversight)
-      // adds a real review surface for this.
       log.warn(
           "Webhook amount mismatch for payment={} transactionId={}: expected={} got={}",
           payment.getId(),
           payload.transactionId(),
           payment.getAmount(),
           payload.amount());
+      paymentReviewFlagRepository.save(
+          new PaymentReviewFlag(
+              payment.getId(), AMOUNT_MISMATCH_REASON, payment.getAmount(), payload.amount()));
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Amount mismatch");
     }
 
@@ -127,6 +135,32 @@ class PaymentServiceImpl implements PaymentService {
       payment.markFailed();
       paymentRepository.save(payment);
     }
+  }
+
+  @Override
+  public List<PaymentSummary> findByBookingIds(List<UUID> bookingIds) {
+    List<Payment> payments = paymentRepository.findByBookingIdIn(bookingIds);
+    List<UUID> paymentIds = payments.stream().map(Payment::getId).toList();
+    Map<UUID, PaymentReviewFlag> openFlagsByPaymentId =
+        paymentReviewFlagRepository
+            .findByPaymentIdInAndStatus(paymentIds, PaymentReviewFlagStatus.OPEN)
+            .stream()
+            .collect(Collectors.toMap(PaymentReviewFlag::getPaymentId, Function.identity()));
+    return payments.stream().map(p -> toSummary(p, openFlagsByPaymentId.get(p.getId()))).toList();
+  }
+
+  private static PaymentSummary toSummary(Payment payment, PaymentReviewFlag openFlag) {
+    return new PaymentSummary(
+        payment.getId(),
+        payment.getBookingId(),
+        payment.getStatus(),
+        payment.getAmount(),
+        payment.getCurrency(),
+        payment.getCmiTransactionId(),
+        openFlag == null ? null : openFlag.getId(),
+        openFlag == null ? null : openFlag.getReason(),
+        openFlag == null ? null : openFlag.getExpectedAmount(),
+        openFlag == null ? null : openFlag.getActualAmount());
   }
 
   private Payment createPaymentRow(UUID bookingId, BigDecimal depositAmount) {

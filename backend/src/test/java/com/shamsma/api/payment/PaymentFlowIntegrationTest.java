@@ -1,5 +1,6 @@
 package com.shamsma.api.payment;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -246,6 +247,13 @@ class PaymentFlowIntegrationTest {
                 .header("Authorization", "Bearer " + homeownerToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status", is("PENDING_PAYMENT")));
+
+    Integer openFlagCount =
+        jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM payment_review_flags WHERE status = 'OPEN' "
+                + "AND actual_amount = 999999 AND expected_amount = 3000",
+            Integer.class);
+    assertThat(openFlagCount).isEqualTo(1);
   }
 
   @Test

@@ -3,6 +3,7 @@ package com.shamsma.api.payment;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,11 +14,13 @@ import com.shamsma.api.booking.BookingStatus;
 import com.shamsma.api.notification.NotificationService;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -33,6 +36,7 @@ class PaymentServiceImplTest {
   private static final String SECRET = "test-secret";
 
   @Mock private PaymentRepository paymentRepository;
+  @Mock private PaymentReviewFlagRepository paymentReviewFlagRepository;
   @Mock private BookingService bookingService;
   @Mock private CmiCheckoutService cmiCheckoutService;
   @Mock private NotificationService notificationService;
@@ -46,6 +50,7 @@ class PaymentServiceImplTest {
     service =
         new PaymentServiceImpl(
             paymentRepository,
+            paymentReviewFlagRepository,
             bookingService,
             cmiCheckoutService,
             cmiSignatureService,
@@ -206,6 +211,36 @@ class PaymentServiceImplTest {
         .extracting("statusCode")
         .isEqualTo(HttpStatus.BAD_REQUEST);
     verify(bookingService, never()).markPaid(any());
+
+    ArgumentCaptor<PaymentReviewFlag> flagCaptor = ArgumentCaptor.forClass(PaymentReviewFlag.class);
+    verify(paymentReviewFlagRepository).save(flagCaptor.capture());
+    PaymentReviewFlag flag = flagCaptor.getValue();
+    assertThat(flag.getPaymentId()).isEqualTo(payment.getId());
+    assertThat(flag.getReason()).isEqualTo("AMOUNT_MISMATCH");
+    assertThat(flag.getExpectedAmount()).isEqualByComparingTo("100.00");
+    assertThat(flag.getActualAmount()).isEqualByComparingTo("999.00");
+    assertThat(flag.getStatus()).isEqualTo(PaymentReviewFlagStatus.OPEN);
+  }
+
+  @Test
+  void findByBookingIdsReturnsPaymentSummariesWithOpenFlags() {
+    Payment payment = new Payment(BOOKING_ID, new BigDecimal("100.00"), "MAD");
+    payment.assignCmiTransactionId("t1");
+    PaymentReviewFlag openFlag =
+        new PaymentReviewFlag(
+            payment.getId(), "AMOUNT_MISMATCH", new BigDecimal("100.00"), new BigDecimal("999.00"));
+    when(paymentRepository.findByBookingIdIn(List.of(BOOKING_ID))).thenReturn(List.of(payment));
+    when(paymentReviewFlagRepository.findByPaymentIdInAndStatus(
+            any(), eq(PaymentReviewFlagStatus.OPEN)))
+        .thenReturn(List.of(openFlag));
+
+    List<PaymentSummary> summaries = service.findByBookingIds(List.of(BOOKING_ID));
+
+    assertThat(summaries).hasSize(1);
+    PaymentSummary summary = summaries.get(0);
+    assertThat(summary.bookingId()).isEqualTo(BOOKING_ID);
+    assertThat(summary.openFlagId()).isEqualTo(openFlag.getId());
+    assertThat(summary.openFlagReason()).isEqualTo("AMOUNT_MISMATCH");
   }
 
   @Test

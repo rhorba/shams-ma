@@ -32,3 +32,10 @@
 - User picked "Comprehensive": region-aware irradiance-by-city ROI formula, roof-orientation multiplier, 20-year savings chart, address-based browse (closes Story 2.2's literal gap), over Simple/Balanced alternatives.
 - Refinement pending user confirmation in PLAN: electricity tariff (MAD/kWh) will be a single national blended constant, NOT city-varying — ONEE's residential tariff schedule is national (tiered by consumption bracket, not by region), unlike irradiance which genuinely varies by city; no verified source exists for regional tariff variation so modeling it would be fabricated precision.
 - Refinement pending confirmation: standalone ROI-estimate results will NOT get a new DB table this epic — bookings.roi_estimate_kwh/roi_payback_years (per database doc) already exist as a snapshot captured when a quote request is made (Epic 3's job); persisting un-requested calculator runs now has no reader and would be premature (YAGNI).
+
+## 2026-07-28 (cont.) — Epic 5 scope
+User chose the "Comprehensive" option for Story 5.1: read-only admin bookings/payments overview + a dedicated `payment_review_flags` table (new entity, own migration) populated by the webhook amount-mismatch path (previously log-only) + resolve/dismiss endpoints (audited via existing shared AuditLogService) + CSV export + search.
+Reused existing infra instead of building new: `AuditLogService`/`audit_log` table (V8, already exists) for the resolve/dismiss action trail; `HomeownerService.getSummary`/`InstallerService.getSummary` (existing cross-package pattern from Epic 3) for names in the overview; existing `/api/v1/admin/**` -> ROLE_ADMIN_MFA matcher in SecurityConfig (no security config change needed).
+
+## 2026-07-28 (cont.) — Epic 5 plan confirmed
+User approved Batches 1-4 as planned. For the rule-9 video-recording requirement (Epic 5 completes every story in stories-shams-ma.md, i.e. MVP version-completion): user chose option B — skip the Playwright video recording this session, log it as an explicitly deferred gap/follow-up rather than adding new Playwright tooling now or doing an unrecorded manual smoke pass.

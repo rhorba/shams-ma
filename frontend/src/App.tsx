@@ -9,6 +9,7 @@ import LoginPage from './auth/LoginPage'
 import RequireRole from './auth/RequireRole'
 import InstallerDashboardPage from './features/installer/InstallerDashboardPage'
 import CertificationQueuePage from './features/admin/CertificationQueuePage'
+import AdminBookingsOverviewPage from './features/admin/AdminBookingsOverviewPage'
 import BrowsePage from './features/browse/BrowsePage'
 import RoiCalculatorPage from './features/roi/RoiCalculatorPage'
 import HomeownerRequestsPage from './features/homeowner/HomeownerRequestsPage'
@@ -42,6 +43,11 @@ function Nav() {
         {role === 'ADMIN' && (
           <Button component={Link} to="/admin/certifications">
             Review queue
+          </Button>
+        )}
+        {role === 'ADMIN' && (
+          <Button component={Link} to="/admin/bookings">
+            Bookings
           </Button>
         )}
         {role ? (
@@ -103,6 +109,14 @@ function App() {
           element={
             <RequireRole role="ADMIN" requireMfa>
               <CertificationQueuePage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/bookings"
+          element={
+            <RequireRole role="ADMIN" requireMfa>
+              <AdminBookingsOverviewPage />
             </RequireRole>
           }
         />
